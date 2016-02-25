@@ -75,19 +75,56 @@ Matrix operator+(const Matrix& M1, const Matrix& M2) {
 Matrix operator-(const Matrix& M1, const Matrix& M2) {
   assert(M1.get_size_i() == M2.get_size_i());
   assert(M1.get_size_j() == M2.get_size_j());
-  // ...
-  return Id(1);
+  unsigned size_i = M1.get_size_i();
+  unsigned size_j = M1.get_size_j();
+  Matrix M(size_i,size_j);
+  
+  for ( unsigned i = 0; i < size_i; i++)
+    {
+      for(unsigned j = 0; j< size_j; j++)
+	{
+	  Matrix::scalar_t x = M1.get(i, j) - M2.get(i, j);
+	  M.set(i, j, x);
+	}
+    }
+  return M;
 }
 
 Matrix operator*(Matrix::scalar_t a, const Matrix& M1) {
-  // ...
-  return Id(1);
+  unsigned size_i = M1.get_size_i();
+  unsigned size_j = M1.get_size_j();
+  Matrix M(size_i, size_j);
+  for ( unsigned i = 0; i < size_i; i++)
+    {
+      for(unsigned j = 0; j< size_j; j++)
+	{
+	  Matrix::scalar_t x = a * M1.get(i ,j);
+	  M.set(i, j, x);
+	}
+    }
+  return M;
 }
-
+/* M1 size (p,q), M2 size(q,r)*/
 Matrix operator*(const Matrix& M1, const Matrix& M2) {
   assert(M1.get_size_j() == M2.get_size_i());
-  // ...
-  return Id(1);
+  unsigned p = M1.get_size_i();
+  unsigned q = M2.get_size_i();
+  unsigned r = M2.get_size_j();
+  Matrix M(p,r);
+
+  for(unsigned i = 0; i < p; i++)
+    {
+      for( unsigned j = 0; j < r; j++)
+	{
+	  Matrix::scalar_t x = 0;
+	  for (unsigned k = 0; k < q; k++)
+	    {
+	      x+= M1.get(i,k) * M2.get(k,j);
+	    }
+	  M.set( i, j, x);
+	}
+    }
+  return M;
 }
 
 Matrix Id(unsigned n) {
@@ -100,8 +137,18 @@ Matrix Id(unsigned n) {
 }
 
 Matrix::scalar_t norm(const Matrix& M1) {
-  // ...
-  return 0;
+  Matrix::scalar_t result = 0.0;
+  unsigned size_i = M1.get_size_i();
+  unsigned size_j = M1.get_size_j();
+  for( unsigned i = 0 ; i < size_i; i++)
+    {
+      for(unsigned j = 0; j < size_j ; j++)
+	{
+	  if(abs(M1.get(i,j))> result )
+	    result = M1.get(i,j);
+	}
+    }
+  return result;
 }
 
 static Matrix submatrix(const Matrix& M1, unsigned a, unsigned b) {	//Note it is static!
@@ -111,26 +158,75 @@ static Matrix submatrix(const Matrix& M1, unsigned a, unsigned b) {	//Note it is
   assert (0 <= b && b < size_j);
   assert(size_i >= 2);
   assert(size_j >= 2);
-  // ...
-  return Id(1);
+  Matrix M(size_i-1, size_j-1);
+  for (unsigned i = 0; i < size_i; i++)
+    {
+      for(unsigned j = 0 ; j < size_j; j++)
+	{
+	  if(i < a)
+	    {
+	      if(j < b)
+		{
+		  M.set(i, j, M1.get(i,j));
+		}
+	      else if(j >b)
+		{
+		  M.set(i, j-1, M1.get(i,j) );
+		}
+	    }
+	  else if(i > a)
+	    {
+	      if(j < b)
+		{
+		  M.set(i-1, j, M1.get(i,j) );
+		}
+	      else if (j > b)
+		{
+		  M.set( i-1, j-1, M1.get(i,j ) );
+		}
+	    }
+	}
+    }
+  return M;
 }
 
 static int toggle(unsigned i) {		//Note it is static!
-  // ...
-  return 0;
+  if( i % 2 == 0)
+    return 1;
+  else 
+    return -1;
 }
 
 Matrix::scalar_t determinant(const Matrix& M1) {
   unsigned size_i = M1.get_size_i();
   unsigned size_j = M1.get_size_j();
   assert(size_i == size_j);
-  // ...
-  return 0;
+  if(size_i == 1)
+    return M1.get(0,0);
+  else
+    {
+      Matrix::scalar_t result = 0.0;
+      for (unsigned i = 0; i < size_i; i++)
+	{
+	  result += toggle(i)*M1.get(0,i)*determinant(submatrix ( M1, 0, i));
+	}
+      return result;
+    } 
 }
 
 Matrix transpose(const Matrix& M1) {
-  // ...
-  return Id(1);
+  unsigned size_i = M1.get_size_i();
+  unsigned size_j = M1.get_size_j();
+
+  Matrix M(size_j,size_i);
+  for(unsigned i = 0; i < size_i; i++)
+    {
+      for(unsigned j = 0; j <size_j; j++)
+	{
+	   M.set( j, i, M1.get(j,i));
+	}
+    }
+  return M;
 }
 
 Matrix inverse(const Matrix& M1) {
@@ -147,7 +243,7 @@ Matrix inverse(const Matrix& M1) {
 
   unsigned size = size_i;
   Matrix cofactors(size, size);
-  Matrix M2 = transpose(M1);	// Do not forget it!
+  Matrix M2 = transpose(M1);
 
   for (unsigned i = 0; i < size; i++) {
     for (unsigned j = 0; j < size; j++) {
@@ -159,5 +255,30 @@ Matrix inverse(const Matrix& M1) {
     }
   }
 
-  return cofactors;
+  return transpose(cofactors);
 }
+Matrix::scalar_t verification (const Matrix& M1)
+{
+  assert(M1.get_size_i() == M1.get_size_j());
+  unsigned i = M1.get_size_i();
+  Matrix MM = inverse(M1);
+
+  Matrix N1 = M1 * MM - Id(i);
+  Matrix N2 = MM * M1 - Id(i);
+  return norm(N1) - norm(N2);
+}
+/* Return an hilbert matrix of size n */
+Matrix hilbert(unsigned n)
+{
+  Matrix M(n,n);
+  for(unsigned i = 0; i < n ; i++)
+    {
+      for(unsigned j = 0; j < n; j++)
+	{
+	  //this is i + j +1 because i and j start at 0 and not at 1
+	  M.set(i,j, 1.0/(i + j +1.0));
+	}
+    }
+  return M;
+}
+

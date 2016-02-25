@@ -5,11 +5,10 @@ using namespace std;
 
 int main() {
 
-  int n = 3;
+  /* int n = 3;
   Matrix M(n, n);
 
-  // See example at http://www.math.cornell.edu/~andreim/Lec17.pdf
-
+ 
   M.set(0, 0, 0.0);
   M.set(1, 0, -2.0);
   M.set(2, 0, 4.0);
@@ -20,6 +19,7 @@ int main() {
   M.set(1, 2, -1.0);
   M.set(2, 2, 1.0);
 
+  cout << determinant (M) << endl;;
   Matrix MM = inverse(M);
 
   /**************************
@@ -38,10 +38,13 @@ int main() {
     0.46   -0.15  -0.077
 
   **************************/
-
+  /*
   M.print();
   cout << determinant(M) << endl;;
   MM.print();
 
   cout << norm((M * MM) - Id(n)) << " " <<  norm((MM * M) - Id(n)) << endl;
+  */
+  Matrix M = hilbert(8);
+  cout << verification (M) << endl;
 }

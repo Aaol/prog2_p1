@@ -42,3 +42,6 @@ Matrix::scalar_t determinant(const Matrix& M1);
 
 Matrix inverse(const Matrix& M1);
 
+Matrix hilbert(unsigned n);
+
+Matrix::scalar_t verification (const Matrix& M1);
